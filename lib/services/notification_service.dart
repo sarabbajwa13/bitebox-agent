@@ -1,56 +1,45 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../config/app_config.dart';
-import '../models/order.dart';
-
 /// Background me aaye FCM messages ka handler (top-level hona zaroori hai).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // App band/background me push OS khud dikhata hai (notification payload).
-  // Yahan sirf ensure karte hain ki handler registered hai.
+  // Notification-payload wale messages ko OS khud dikhata hai (background/killed).
+  // Yahan sirf handler registered rakhte hain.
 }
 
-/// Local notifications + FCM ka wrapper.
+/// FCM + local notifications wrapper.
 ///
-/// - App khuli ho: Firestore listener naya order detect karke [showNewOrder]
-///   call karta hai (loud heads-up + sound).
-/// - App band/background: FCM push (Cloud Function se — Phase 3) OS dikhata hai.
+/// Notifications ka **channel + custom sound natively MainActivity.kt me** banta
+/// hai (id: `bitebox_orders`, sound: raw/notification_sound.mp3). Yahan bas usi
+/// channel id ko reference karte hain:
+///  - Foreground: `onMessage` par local notification dikhate hain.
+///  - Background/killed: FCM notification-payload OS khud dikhata hai (usi channel
+///    ka custom sound bajta hai).
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
 
+  /// MainActivity.kt me isi id ka channel custom sound ke saath banaya jaata hai.
+  static const String channelId = 'bitebox_orders';
+
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
-
-  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
-    'new_orders',
-    'New orders',
-    description: 'Alerts when a new order arrives',
-    importance: Importance.max,
-    playSound: true,
-    enableVibration: true,
-  );
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
 
   Future<void> init() async {
-    // ---- Local notifications ----
+    // Local notifications init (channel yahan nahi banate — native banata hai).
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidInit);
     await _local.initialize(settings: initSettings);
-    await _local
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_channel);
 
-    // ---- FCM permission + foreground handling ----
+    // FCM permission + foreground handling.
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission(alert: true, badge: true, sound: true);
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // App khuli ho aur push aaye → khud local notification dikhao.
     FirebaseMessaging.onMessage.listen((message) {
       final n = message.notification;
       _show(
@@ -67,15 +56,6 @@ class NotificationService {
     }
   }
 
-  /// Naya order aane par heads-up notification + sound.
-  Future<void> showNewOrder(AgentOrder order) async {
-    await _show(
-      title: 'New order · ${AppConfig.currencySymbol}${order.total.toStringAsFixed(0)}',
-      body: '${order.customerName} · ${order.totalQuantity} items',
-      id: order.id.hashCode,
-    );
-  }
-
   Future<void> _show({
     required String title,
     required String body,
@@ -85,16 +65,18 @@ class NotificationService {
       id: id,
       title: title,
       body: body,
-      notificationDetails: NotificationDetails(
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          _channel.id,
-          _channel.name,
-          channelDescription: _channel.description,
+          channelId,
+          'New orders',
+          channelDescription: 'Alerts when a new order arrives',
           importance: Importance.max,
           priority: Priority.high,
           playSound: true,
+          // Channel ka custom sound (native) primary hai; ye foreground/older
+          // Android ke liye explicit fallback.
+          sound: RawResourceAndroidNotificationSound('notification_sound'),
           enableVibration: true,
-          category: AndroidNotificationCategory.call,
         ),
       ),
     );

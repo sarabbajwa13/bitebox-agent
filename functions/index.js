@@ -55,10 +55,11 @@ exports.notifyStoreOnNewOrder = onDocumentCreated(
         android: {
           priority: "high",
           notification: {
-            channelId: "new_orders",
-            sound: "default",
+            // MainActivity.kt me isi channel me custom sound set hai.
+            channelId: "bitebox_orders",
+            // Android <8 (no channels) ke liye raw sound; O+ pe channel wins.
+            sound: "notification_sound",
             priority: "high",
-            defaultSound: true,
             defaultVibrateTimings: true,
           },
         },
