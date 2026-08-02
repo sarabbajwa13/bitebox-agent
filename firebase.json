@@ -1,0 +1,30 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default"
+    }
+  ],
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "biteboxa",
+          "appId": "1:1056904160552:android:000964d4f8e20cb878dc1d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "biteboxa",
+          "configurations": {
+            "android": "1:1056904160552:android:000964d4f8e20cb878dc1d"
+          }
+        }
+      }
+    }
+  }
+}

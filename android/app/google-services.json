@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1056904160552",
+    "project_id": "biteboxa",
+    "storage_bucket": "biteboxa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056904160552:android:000964d4f8e20cb878dc1d",
+        "android_client_info": {
+          "package_name": "com.bitebox.bitebox_agent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5T8eaOuuiHLgQMos9-nZJtpFSBfDDLDY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
